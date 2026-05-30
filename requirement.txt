@@ -1,0 +1,47 @@
+Prime Associates
+Parina International
+Prime Motors
+
+Are three different company under one umbrella.
+There are 20 employees working in this three sister company.
+They are devided in this way due to various limitation.
+The prime Associates deals with Sales and Services of Road, Bridge and Building constructuion equipment and machinerary.
+The parina International too does the similar work as prime associates.
+The prime motors deals with moter vechicle full and parts sales and services.
+
+All these are operated from Kathmandu Nepal.
+They don't manufacture any of the parts or component they just trade.
+
+They are partner to many construction company for different products.
+
+Most of the company are from india.
+
+The customer of this company is in Nepal, we contact various construction contractors or builders.
+and demonstrate the products and their quotation.
+once the quotation is approved and both party are in agreement.
+The company will open LC and place order to the manufacturing company for the given products.
+the company will then place the product on the transport and the transport will deliver to the site in Nepal.
+When the product comes to the border of india and nepal they need to have custom clearance. 
+
+After the product is sold, certain products offer free services for may be for a year or for 3 services or which ever finishes first.
+We need to track these As well. 
+
+Sometime the technician comes from india for the services.
+We need to track them as well their expenses, their TA DA stay, attendance.
+
+We also shell spare parts.
+
+Note our purchase price is different then our seles price.
+We negotiate with the buyers about the price. we keep certain profit margine and shell.
+
+We also need to maintain the inventory of the spare parts.
+Howmany are sold how many are in inventory.
+Which inventory is running out.
+Which inventory is located in which rack so that we can quickly navigate it and deliver.
+
+the racks are not constant, we want to have a way to make it constant.
+one the spare parts arrieves we may want to record them in inventory the rack number where they are placed.
+their purchase price other expenses and their sales price. 
+
+There are different users of this APP.
+some contact with buyers some contact the company, and some are front desk employ who will interact with walk-in and call-in customer and tell them the price of the product they are seeking for.
