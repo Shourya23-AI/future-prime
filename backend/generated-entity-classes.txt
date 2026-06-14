@@ -1,0 +1,2303 @@
+--- FILE: src/main/java/com/futureprime/identity/entity/AppUser.java ---
+package com.futureprime.identity.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "app_user")
+@Getter
+@Setter
+public class AppUser extends BaseEntity {
+
+    private String fullName;
+
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    private String passwordHash;
+
+    private String phone;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+
+    private LocalDateTime lastLoginAt;
+}
+
+
+--- FILE: src/main/java/com/futureprime/identity/entity/BusinessEntity.java ---
+package com.futureprime.identity.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "business_entity")
+@Getter
+@Setter
+public class BusinessEntity extends BaseEntity {
+
+    @Column(nullable = false)
+    private String name;
+
+    private String shortCode;
+
+    @Column(columnDefinition = "TEXT")
+    private String address;
+
+    private String panNumber;
+
+    private String vatNumber;
+
+    private String phone;
+
+    private String email;
+
+    private String logoS3Key;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+}
+
+
+--- FILE: src/main/java/com/futureprime/identity/entity/Permission.java ---
+package com.futureprime.identity.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "permission")
+@Getter
+@Setter
+public class Permission extends BaseEntity {
+
+    @Column(unique = true, nullable = false)
+    private String code;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    private String module;
+}
+
+
+--- FILE: src/main/java/com/futureprime/identity/entity/RefreshToken.java ---
+package com.futureprime.identity.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.AppUser;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "refresh_token")
+@Getter
+@Setter
+public class RefreshToken extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private AppUser user;
+
+    @Column(unique = true)
+    private String token;
+
+    private LocalDateTime expiresAt;
+
+    @Column(nullable = false)
+    private Boolean isRevoked = false;
+}
+
+
+--- FILE: src/main/java/com/futureprime/identity/entity/Role.java ---
+package com.futureprime.identity.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "role")
+@Getter
+@Setter
+public class Role extends BaseEntity {
+
+    @Column(unique = true, nullable = false)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+}
+
+
+--- FILE: src/main/java/com/futureprime/identity/entity/RolePermission.java ---
+package com.futureprime.identity.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.Permission;
+import com.futureprime.identity.entity.Role;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.Table;
+import java.io.Serializable;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "role_permission")
+@Getter
+@Setter
+public class RolePermission {
+
+    @EmbeddedId
+    private Id id = new Id();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("roleId")
+    @JoinColumn(name = "role_id")
+    private Role role;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("permissionId")
+    @JoinColumn(name = "permission_id")
+    private Permission permission;
+
+    @Embeddable
+    @Getter
+    @Setter
+    public static class Id implements Serializable {
+    @Column(name = "role_id")
+        private UUID roleId;
+    @Column(name = "permission_id")
+        private UUID permissionId;
+    }
+}
+
+
+--- FILE: src/main/java/com/futureprime/identity/entity/UserEntityRole.java ---
+package com.futureprime.identity.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.AppUser;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.identity.entity.Role;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "user_entity_role")
+@Getter
+@Setter
+public class UserEntityRole extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private AppUser user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+}
+
+
+--- FILE: src/main/java/com/futureprime/master/entity/Customer.java ---
+package com.futureprime.master.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "customer")
+@Getter
+@Setter
+public class Customer extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "primary_entity_id", nullable = false)
+    private BusinessEntity primaryEntity;
+
+    @Column(nullable = false)
+    private String name;
+
+    private String type;
+
+    private String panNumber;
+
+    private String vatNumber;
+
+    @Column(columnDefinition = "TEXT")
+    private String billingAddress;
+
+    @Column(columnDefinition = "TEXT")
+    private String shippingAddress;
+
+    private String phone;
+
+    private String email;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal creditLimit;
+
+    private Integer creditDays;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+}
+
+
+--- FILE: src/main/java/com/futureprime/master/entity/CustomerEntity.java ---
+package com.futureprime.master.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.master.entity.Customer;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.Table;
+import java.io.Serializable;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "customer_entity")
+@Getter
+@Setter
+public class CustomerEntity {
+
+    @EmbeddedId
+    private Id id = new Id();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("customerId")
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("businessEntityId")
+    @JoinColumn(name = "business_entity_id")
+    private BusinessEntity businessEntity;
+
+    @Embeddable
+    @Getter
+    @Setter
+    public static class Id implements Serializable {
+    @Column(name = "customer_id")
+        private UUID customerId;
+    @Column(name = "business_entity_id")
+        private UUID businessEntityId;
+    }
+}
+
+
+--- FILE: src/main/java/com/futureprime/master/entity/Product.java ---
+package com.futureprime.master.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.master.entity.ProductCategory;
+import com.futureprime.master.entity.Supplier;
+import com.futureprime.master.entity.UnitOfMeasure;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "product")
+@Getter
+@Setter
+public class Product extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private ProductCategory category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id", nullable = false)
+    private Supplier supplier;
+
+    @Column(nullable = false)
+    private String name;
+
+    private String modelNumber;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uom_id", nullable = false)
+    private UnitOfMeasure unitOfMeasure;
+
+    private String productType;
+
+    private String businessModel;
+
+    @Column(nullable = false)
+    private Boolean hasWarranty = false;
+
+    private Integer warrantyMonths;
+
+    @Column(nullable = false)
+    private Boolean hasFreeService = false;
+
+    private Integer freeServiceCount;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+}
+
+
+--- FILE: src/main/java/com/futureprime/master/entity/ProductCategory.java ---
+package com.futureprime.master.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.master.entity.ProductCategory;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "product_category")
+@Getter
+@Setter
+public class ProductCategory extends BaseEntity {
+
+    @Column(nullable = false)
+    private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id", nullable = true)
+    private ProductCategory parentCategory;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+}
+
+
+--- FILE: src/main/java/com/futureprime/master/entity/SparePartMapping.java ---
+package com.futureprime.master.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "spare_part_mapping")
+@Getter
+@Setter
+public class SparePartMapping extends BaseEntity {
+
+    private UUID equipmentProductId;
+
+    private UUID sparePartProductId;
+
+    @Column(nullable = false)
+    private Boolean isCritical = false;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal minStockQuantity;
+}
+
+
+--- FILE: src/main/java/com/futureprime/master/entity/Supplier.java ---
+package com.futureprime.master.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "supplier")
+@Getter
+@Setter
+public class Supplier extends BaseEntity {
+
+    @Column(nullable = false)
+    private String name;
+
+    private String country;
+
+    @Column(nullable = false)
+    private Boolean isMotherCompany = false;
+
+    private String contactPerson;
+
+    private String phone;
+
+    private String email;
+
+    @Column(columnDefinition = "TEXT")
+    private String address;
+
+    private String paymentTerms;
+
+    private String currency;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+}
+
+
+--- FILE: src/main/java/com/futureprime/master/entity/UnitOfMeasure.java ---
+package com.futureprime.master.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "unit_of_measure")
+@Getter
+@Setter
+public class UnitOfMeasure extends BaseEntity {
+
+    private String name;
+
+    private String abbreviation;
+}
+
+
+--- FILE: src/main/java/com/futureprime/inventory/entity/InterCompanyTransfer.java ---
+package com.futureprime.inventory.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.finance.entity.InterCompanyInvoice;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.master.entity.Product;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "inter_company_transfer")
+@Getter
+@Setter
+public class InterCompanyTransfer extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "from_entity_id", nullable = false)
+    private BusinessEntity fromEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "to_entity_id", nullable = false)
+    private BusinessEntity toEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @Column(precision = 10, scale = 2, nullable = false)
+    private BigDecimal quantity;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal transferPrice;
+
+    private LocalDate transferDate;
+
+    @Column(nullable = false)
+    private String status;
+
+    private UUID fromStockMovementId;
+
+    private UUID toStockMovementId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inter_company_invoice_id", nullable = true)
+    private InterCompanyInvoice interCompanyInvoice;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+}
+
+
+--- FILE: src/main/java/com/futureprime/inventory/entity/RackLocation.java ---
+package com.futureprime.inventory.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "rack_location")
+@Getter
+@Setter
+public class RackLocation extends BaseEntity {
+
+    private UUID warehouseId;
+
+    private String code;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+}
+
+
+--- FILE: src/main/java/com/futureprime/inventory/entity/StockItem.java ---
+package com.futureprime.inventory.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.inventory.entity.RackLocation;
+import com.futureprime.master.entity.Product;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "stock_item")
+@Getter
+@Setter
+public class StockItem extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    private UUID warehouseId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rack_location_id", nullable = true)
+    private RackLocation rackLocation;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal quantityOnHand;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal quantityReserved;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal quantityAvailable;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal averageLandedCost;
+
+    private LocalDateTime lastMovementAt;
+}
+
+
+--- FILE: src/main/java/com/futureprime/inventory/entity/StockMovement.java ---
+package com.futureprime.inventory.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.inventory.entity.StockItem;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "stock_movement")
+@Getter
+@Setter
+public class StockMovement extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stock_item_id", nullable = false)
+    private StockItem stockItem;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    private String movementType;
+
+    @Column(precision = 10, scale = 2, nullable = false)
+    private BigDecimal quantity;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal unitCost;
+
+    private String referenceType;
+
+    private UUID referenceId;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
+    private LocalDate movementDate;
+}
+
+
+--- FILE: src/main/java/com/futureprime/inventory/entity/Warehouse.java ---
+package com.futureprime.inventory.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "warehouse")
+@Getter
+@Setter
+public class Warehouse extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String address;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+}
+
+
+--- FILE: src/main/java/com/futureprime/trade/entity/Invoice.java ---
+package com.futureprime.trade.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.master.entity.Customer;
+import com.futureprime.trade.entity.SalesOrder;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "invoice")
+@Getter
+@Setter
+public class Invoice extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sales_order_id", nullable = true)
+    private SalesOrder salesOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    private String invoiceNumber;
+
+    private LocalDate invoiceDate;
+
+    private LocalDate dueDate;
+
+    @Column(nullable = false)
+    private String status;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal subtotal;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal vatAmount;
+
+    @Column(precision = 15, scale = 2, nullable = false)
+    private BigDecimal totalAmount;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal paidAmount;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal balanceDue;
+
+    private String pdfS3Key;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+}
+
+
+--- FILE: src/main/java/com/futureprime/trade/entity/InvoiceLineItem.java ---
+package com.futureprime.trade.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.master.entity.Product;
+import com.futureprime.trade.entity.Invoice;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "invoice_line_item")
+@Getter
+@Setter
+public class InvoiceLineItem extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "invoice_id", nullable = false)
+    private Invoice invoice;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(precision = 10, scale = 2, nullable = false)
+    private BigDecimal quantity;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal unitPrice;
+
+    @Column(precision = 5, scale = 2)
+    private BigDecimal discountPercent;
+
+    @Column(nullable = false)
+    private Boolean vatApplicable = true;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal lineTotal;
+}
+
+
+--- FILE: src/main/java/com/futureprime/trade/entity/PaymentReceipt.java ---
+package com.futureprime.trade.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.master.entity.Customer;
+import com.futureprime.trade.entity.Invoice;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "payment_receipt")
+@Getter
+@Setter
+public class PaymentReceipt extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "invoice_id", nullable = false)
+    private Invoice invoice;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    private String receiptNumber;
+
+    private LocalDate paymentDate;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal amount;
+
+    private String paymentMode;
+
+    private String referenceNumber;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+}
+
+
+--- FILE: src/main/java/com/futureprime/trade/entity/Quote.java ---
+package com.futureprime.trade.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.master.entity.Customer;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "quote")
+@Getter
+@Setter
+public class Quote extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    private String quoteNumber;
+
+    private LocalDate quoteDate;
+
+    private LocalDate validUntil;
+
+    private String businessModel;
+
+    @Column(nullable = false)
+    private String status;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal subtotal;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal vatAmount;
+
+    @Column(precision = 15, scale = 2, nullable = false)
+    private BigDecimal totalAmount;
+
+    @Column(columnDefinition = "TEXT")
+    private String termsAndConditions;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
+    private UUID approvedBy;
+
+    private LocalDateTime approvedAt;
+}
+
+
+--- FILE: src/main/java/com/futureprime/trade/entity/QuoteLineItem.java ---
+package com.futureprime.trade.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.master.entity.Product;
+import com.futureprime.trade.entity.Quote;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "quote_line_item")
+@Getter
+@Setter
+public class QuoteLineItem extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quote_id", nullable = false)
+    private Quote quote;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(precision = 10, scale = 2, nullable = false)
+    private BigDecimal quantity;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal unitPrice;
+
+    @Column(precision = 5, scale = 2)
+    private BigDecimal discountPercent;
+
+    @Column(nullable = false)
+    private Boolean vatApplicable = true;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal lineTotal;
+
+    private Integer sortOrder;
+}
+
+
+--- FILE: src/main/java/com/futureprime/trade/entity/SalesOrder.java ---
+package com.futureprime.trade.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.master.entity.Customer;
+import com.futureprime.trade.entity.Quote;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "sales_order")
+@Getter
+@Setter
+public class SalesOrder extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quote_id", nullable = true)
+    private Quote quote;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    private String orderNumber;
+
+    private LocalDate orderDate;
+
+    private LocalDate expectedDeliveryDate;
+
+    @Column(columnDefinition = "TEXT")
+    private String deliveryAddress;
+
+    @Column(nullable = false)
+    private String status;
+
+    private String businessModel;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+}
+
+
+--- FILE: src/main/java/com/futureprime/trade/entity/SalesOrderLineItem.java ---
+package com.futureprime.trade.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.master.entity.Product;
+import com.futureprime.trade.entity.SalesOrder;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "sales_order_line_item")
+@Getter
+@Setter
+public class SalesOrderLineItem extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sales_order_id", nullable = false)
+    private SalesOrder salesOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal quantityOrdered;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal quantityDelivered;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal unitPrice;
+
+    @Column(precision = 5, scale = 2)
+    private BigDecimal discountPercent;
+
+    @Column(nullable = false)
+    private Boolean vatApplicable = true;
+}
+
+
+--- FILE: src/main/java/com/futureprime/imports/entity/CustomsClearance.java ---
+package com.futureprime.imports.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.imports.entity.Shipment;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "customs_clearance")
+@Getter
+@Setter
+public class CustomsClearance extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shipment_id", nullable = false)
+    private Shipment shipment;
+
+    private String customsAgent;
+
+    private String entryNumber;
+
+    private LocalDate entryDate;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal customsDuty;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal vatOnImport;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal otherCharges;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal totalCustomsCost;
+
+    private LocalDate clearanceDate;
+
+    @Column(nullable = false)
+    private String status;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+}
+
+
+--- FILE: src/main/java/com/futureprime/imports/entity/LandedCostAllocation.java ---
+package com.futureprime.imports.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.imports.entity.PurchaseOrderLineItem;
+import com.futureprime.imports.entity.Shipment;
+import com.futureprime.master.entity.Product;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "landed_cost_allocation")
+@Getter
+@Setter
+public class LandedCostAllocation extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shipment_id", nullable = false)
+    private Shipment shipment;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "purchase_order_line_item_id", nullable = false)
+    private PurchaseOrderLineItem purchaseOrderLineItem;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @Column(precision = 10, scale = 2, nullable = false)
+    private BigDecimal quantity;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal supplierCostNpr;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal allocatedShipmentCost;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal landedCostPerUnit;
+}
+
+
+--- FILE: src/main/java/com/futureprime/imports/entity/LcTracking.java ---
+package com.futureprime.imports.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.imports.entity.PurchaseOrder;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "lc_tracking")
+@Getter
+@Setter
+public class LcTracking extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "purchase_order_id", nullable = false)
+    private PurchaseOrder purchaseOrder;
+
+    private String lcNumber;
+
+    private String bankName;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal lcAmount;
+
+    private String lcCurrency;
+
+    private LocalDate issueDate;
+
+    private LocalDate expiryDate;
+
+    @Column(nullable = false)
+    private String status;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+}
+
+
+--- FILE: src/main/java/com/futureprime/imports/entity/PurchaseOrder.java ---
+package com.futureprime.imports.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.master.entity.Supplier;
+import com.futureprime.trade.entity.SalesOrder;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "purchase_order")
+@Getter
+@Setter
+public class PurchaseOrder extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id", nullable = false)
+    private Supplier supplier;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sales_order_id", nullable = true)
+    private SalesOrder salesOrder;
+
+    private String poNumber;
+
+    private LocalDate poDate;
+
+    private String supplierCurrency;
+
+    @Column(precision = 10, scale = 4)
+    private BigDecimal exchangeRate;
+
+    @Column(nullable = false)
+    private String status;
+
+    private String paymentTerms;
+
+    @Column(nullable = false)
+    private Boolean lcRequired = false;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+}
+
+
+--- FILE: src/main/java/com/futureprime/imports/entity/PurchaseOrderLineItem.java ---
+package com.futureprime.imports.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.imports.entity.PurchaseOrder;
+import com.futureprime.master.entity.Product;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "purchase_order_line_item")
+@Getter
+@Setter
+public class PurchaseOrderLineItem extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "purchase_order_id", nullable = false)
+    private PurchaseOrder purchaseOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @Column(precision = 10, scale = 2, nullable = false)
+    private BigDecimal quantity;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal unitPrice;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal lineTotal;
+}
+
+
+--- FILE: src/main/java/com/futureprime/imports/entity/Shipment.java ---
+package com.futureprime.imports.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "shipment")
+@Getter
+@Setter
+public class Shipment extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    private String shipmentNumber;
+
+    private String originCountry;
+
+    private String shipmentMode;
+
+    private String carrierName;
+
+    private String blNumber;
+
+    private LocalDate departureDate;
+
+    private LocalDate estimatedArrivalDate;
+
+    private LocalDate actualArrivalDate;
+
+    @Column(nullable = false)
+    private String status;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+}
+
+
+--- FILE: src/main/java/com/futureprime/imports/entity/ShipmentCost.java ---
+package com.futureprime.imports.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.imports.entity.Shipment;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "shipment_cost")
+@Getter
+@Setter
+public class ShipmentCost extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shipment_id", nullable = false)
+    private Shipment shipment;
+
+    private String costType;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal amount;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+}
+
+
+--- FILE: src/main/java/com/futureprime/imports/entity/ShipmentPurchaseOrder.java ---
+package com.futureprime.imports.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.imports.entity.PurchaseOrder;
+import com.futureprime.imports.entity.Shipment;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.Table;
+import java.io.Serializable;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "shipment_purchase_order")
+@Getter
+@Setter
+public class ShipmentPurchaseOrder {
+
+    @EmbeddedId
+    private Id id = new Id();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("shipmentId")
+    @JoinColumn(name = "shipment_id")
+    private Shipment shipment;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("purchaseOrderId")
+    @JoinColumn(name = "purchase_order_id")
+    private PurchaseOrder purchaseOrder;
+
+    @Embeddable
+    @Getter
+    @Setter
+    public static class Id implements Serializable {
+    @Column(name = "shipment_id")
+        private UUID shipmentId;
+    @Column(name = "purchase_order_id")
+        private UUID purchaseOrderId;
+    }
+}
+
+
+--- FILE: src/main/java/com/futureprime/service/entity/AmcContract.java ---
+package com.futureprime.service.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.master.entity.Customer;
+import com.futureprime.service.entity.EquipmentUnit;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "amc_contract")
+@Getter
+@Setter
+public class AmcContract extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "equipment_unit_id", nullable = false)
+    private EquipmentUnit equipmentUnit;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    private String contractNumber;
+
+    private LocalDate startDate;
+
+    private LocalDate endDate;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal amount;
+
+    private String paymentStatus;
+
+    private Integer visitsIncluded;
+
+    private Integer visitsUsed;
+
+    @Column(nullable = false)
+    private String status;
+}
+
+
+--- FILE: src/main/java/com/futureprime/service/entity/EquipmentUnit.java ---
+package com.futureprime.service.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.master.entity.Customer;
+import com.futureprime.master.entity.Product;
+import com.futureprime.trade.entity.Invoice;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "equipment_unit")
+@Getter
+@Setter
+public class EquipmentUnit extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "invoice_id", nullable = false)
+    private Invoice invoice;
+
+    private String serialNumber;
+
+    private LocalDate deliveryDate;
+
+    private LocalDate commissioningDate;
+
+    @Column(columnDefinition = "TEXT")
+    private String installationAddress;
+
+    @Column(nullable = false)
+    private String status;
+}
+
+
+--- FILE: src/main/java/com/futureprime/service/entity/FreeServiceEntitlement.java ---
+package com.futureprime.service.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.service.entity.EquipmentUnit;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "free_service_entitlement")
+@Getter
+@Setter
+public class FreeServiceEntitlement extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "equipment_unit_id", nullable = false)
+    private EquipmentUnit equipmentUnit;
+
+    private Integer totalFreeServices;
+
+    private Integer usedFreeServices;
+
+    private Integer remainingFreeServices;
+}
+
+
+--- FILE: src/main/java/com/futureprime/service/entity/ServiceJob.java ---
+package com.futureprime.service.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.master.entity.Customer;
+import com.futureprime.service.entity.AmcContract;
+import com.futureprime.service.entity.EquipmentUnit;
+import com.futureprime.trade.entity.Invoice;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "service_job")
+@Getter
+@Setter
+public class ServiceJob extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "equipment_unit_id", nullable = false)
+    private EquipmentUnit equipmentUnit;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    private String jobNumber;
+
+    private String jobType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "amc_contract_id", nullable = true)
+    private AmcContract amcContract;
+
+    @Column(columnDefinition = "TEXT")
+    private String reportedIssue;
+
+    @Column(columnDefinition = "TEXT")
+    private String diagnosis;
+
+    @Column(columnDefinition = "TEXT")
+    private String resolution;
+
+    @Column(nullable = false)
+    private String status;
+
+    private LocalDate scheduledDate;
+
+    private LocalDate completedDate;
+
+    @Column(nullable = false)
+    private Boolean isBillable = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "invoice_id", nullable = true)
+    private Invoice invoice;
+}
+
+
+--- FILE: src/main/java/com/futureprime/service/entity/ServicePartUsage.java ---
+package com.futureprime.service.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.master.entity.Product;
+import com.futureprime.service.entity.ServiceVisit;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "service_part_usage")
+@Getter
+@Setter
+public class ServicePartUsage extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_visit_id", nullable = false)
+    private ServiceVisit serviceVisit;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @Column(precision = 10, scale = 2, nullable = false)
+    private BigDecimal quantity;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal unitCost;
+
+    @Column(nullable = false)
+    private Boolean isBillable = true;
+
+    private String chargeTo;
+}
+
+
+--- FILE: src/main/java/com/futureprime/service/entity/ServiceVisit.java ---
+package com.futureprime.service.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.service.entity.ServiceJob;
+import com.futureprime.technician.entity.Technician;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "service_visit")
+@Getter
+@Setter
+public class ServiceVisit extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_job_id", nullable = false)
+    private ServiceJob serviceJob;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "technician_id", nullable = false)
+    private Technician technician;
+
+    private LocalDate visitDate;
+
+    private LocalTime timeIn;
+
+    private LocalTime timeOut;
+
+    @Column(columnDefinition = "TEXT")
+    private String workDone;
+
+    @Column(columnDefinition = "TEXT")
+    private String partsUsed;
+
+    @Column(nullable = false)
+    private Boolean followUpRequired = false;
+}
+
+
+--- FILE: src/main/java/com/futureprime/service/entity/WarrantyRecord.java ---
+package com.futureprime.service.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.service.entity.EquipmentUnit;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "warranty_record")
+@Getter
+@Setter
+public class WarrantyRecord extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "equipment_unit_id", nullable = false)
+    private EquipmentUnit equipmentUnit;
+
+    private String warrantyType;
+
+    private LocalDate startDate;
+
+    private LocalDate endDate;
+
+    @Column(columnDefinition = "TEXT")
+    private String terms;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+}
+
+
+--- FILE: src/main/java/com/futureprime/technician/entity/Technician.java ---
+package com.futureprime.technician.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.master.entity.Supplier;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "technician")
+@Getter
+@Setter
+public class Technician extends BaseEntity {
+
+    @Column(nullable = false)
+    private String name;
+
+    private String technicianType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id", nullable = true)
+    private Supplier supplier;
+
+    private String phone;
+
+    private String email;
+
+    private String country;
+
+    private String specialization;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+}
+
+
+--- FILE: src/main/java/com/futureprime/technician/entity/TechnicianExpense.java ---
+package com.futureprime.technician.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.service.entity.ServiceJob;
+import com.futureprime.technician.entity.Technician;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "technician_expense")
+@Getter
+@Setter
+public class TechnicianExpense extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_job_id", nullable = false)
+    private ServiceJob serviceJob;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "technician_id", nullable = false)
+    private Technician technician;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    private String expenseType;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal amount;
+
+    private LocalDate expenseDate;
+
+    private String chargeTo;
+
+    private String reference;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+}
+
+
+--- FILE: src/main/java/com/futureprime/technician/entity/TravelRecord.java ---
+package com.futureprime.technician.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.service.entity.ServiceJob;
+import com.futureprime.technician.entity.Technician;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "travel_record")
+@Getter
+@Setter
+public class TravelRecord extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_job_id", nullable = false)
+    private ServiceJob serviceJob;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "technician_id", nullable = false)
+    private Technician technician;
+
+    private String fromLocation;
+
+    private String toLocation;
+
+    private LocalDate departureDate;
+
+    private LocalDate returnDate;
+
+    private String mode;
+
+    private Integer nightsStay;
+}
+
+
+--- FILE: src/main/java/com/futureprime/finance/entity/DocumentSequence.java ---
+package com.futureprime.finance.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "document_sequence", uniqueConstraints = @UniqueConstraint(columnNames = {"business_entity_id", "document_type", "year"}))
+@Getter
+@Setter
+public class DocumentSequence extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    private String documentType;
+
+    private Integer year;
+
+    private Integer lastSequence;
+}
+
+
+--- FILE: src/main/java/com/futureprime/finance/entity/InterCompanyInvoice.java ---
+package com.futureprime.finance.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.inventory.entity.InterCompanyTransfer;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "inter_company_invoice")
+@Getter
+@Setter
+public class InterCompanyInvoice extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "from_entity_id", nullable = false)
+    private BusinessEntity fromEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "to_entity_id", nullable = false)
+    private BusinessEntity toEntity;
+
+    private String invoiceNumber;
+
+    private LocalDate invoiceDate;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal amount;
+
+    @Column(nullable = false)
+    private String status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inter_company_transfer_id", nullable = false)
+    private InterCompanyTransfer interCompanyTransfer;
+}
+
+
+--- FILE: src/main/java/com/futureprime/finance/entity/Payable.java ---
+package com.futureprime.finance.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.imports.entity.PurchaseOrder;
+import com.futureprime.master.entity.Supplier;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "payable")
+@Getter
+@Setter
+public class Payable extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id", nullable = false)
+    private Supplier supplier;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "purchase_order_id", nullable = false)
+    private PurchaseOrder purchaseOrder;
+
+    @Column(precision = 15, scale = 2, nullable = false)
+    private BigDecimal originalAmount;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal paidAmount;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal balance;
+
+    private LocalDate dueDate;
+
+    @Column(nullable = false)
+    private String status;
+}
+
+
+--- FILE: src/main/java/com/futureprime/finance/entity/Receivable.java ---
+package com.futureprime.finance.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.master.entity.Customer;
+import com.futureprime.trade.entity.Invoice;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "receivable")
+@Getter
+@Setter
+public class Receivable extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "invoice_id", nullable = false)
+    private Invoice invoice;
+
+    @Column(precision = 15, scale = 2, nullable = false)
+    private BigDecimal originalAmount;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal paidAmount;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal balance;
+
+    private LocalDate dueDate;
+
+    @Column(nullable = false)
+    private String status;
+}
+
+
+--- FILE: src/main/java/com/futureprime/finance/entity/SupplierPayment.java ---
+package com.futureprime.finance.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.BusinessEntity;
+import com.futureprime.master.entity.Supplier;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "supplier_payment")
+@Getter
+@Setter
+public class SupplierPayment extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    private UUID payableId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id", nullable = false)
+    private Supplier supplier;
+
+    private LocalDate paymentDate;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal amount;
+
+    private String paymentMode;
+
+    private String referenceNumber;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+}
+
+
+--- FILE: src/main/java/com/futureprime/finance/entity/TallyExportLog.java ---
+package com.futureprime.finance.entity;
+
+import com.futureprime.core.entity.BaseEntity;
+import com.futureprime.identity.entity.AppUser;
+import com.futureprime.identity.entity.BusinessEntity;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "tally_export_log")
+@Getter
+@Setter
+public class TallyExportLog extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_entity_id", nullable = false)
+    private BusinessEntity businessEntity;
+
+    private String exportType;
+
+    private LocalDate fromDate;
+
+    private LocalDate toDate;
+
+    private LocalDateTime exportedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "exported_by", nullable = false)
+    private AppUser exportedBy;
+
+    private String fileS3Key;
+
+    private Integer recordCount;
+}
+
+
