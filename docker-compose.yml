@@ -1,3 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fp_user
+      POSTGRES_PASSWORD: fp_pass
+      POSTGRES_DB: futureprime
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: future-prime-app:local
+    restart: unless-stopped
+    volumes:
+      # mount the backend/target directory so the built JAR is available at /opt/app
+      - ./backend/target:/opt/app:ro
+    environment:
+      # Spring Boot environment variables — adjust if your app uses different properties
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/futureprime
+      SPRING_DATASOURCE_USERNAME: fp_user
+      SPRING_DATASOURCE_PASSWORD: fp_pass
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+
+volumes:
+  db_data:
 services:
   postgres:
     image: postgres:15
