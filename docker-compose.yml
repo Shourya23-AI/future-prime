@@ -23,7 +23,6 @@ services:
       # mount the backend/target directory so the built JAR is available at /opt/app
       - ./backend/target:/opt/app:ro
     environment:
-      # Spring Boot environment variables — adjust if your app uses different properties
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/futureprime
       SPRING_DATASOURCE_USERNAME: fp_user
       SPRING_DATASOURCE_PASSWORD: fp_pass
@@ -35,18 +34,4 @@ services:
 
 volumes:
   db_data:
-services:
-  postgres:
-    image: postgres:15
-    container_name: futureprime-postgres
-    environment:
-      POSTGRES_DB: futureprime_dev
-      POSTGRES_USER: futureprime_user
-      POSTGRES_PASSWORD: yourpassword
-    ports:
-      - "5432:5432"
-    volumes:
-      - futureprime_pgdata:/var/lib/postgresql/data
-
-volumes:
   futureprime_pgdata:
