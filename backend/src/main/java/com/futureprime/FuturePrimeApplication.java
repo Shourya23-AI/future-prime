@@ -19,7 +19,7 @@ public class FuturePrimeApplication {
 	@Bean
 	public CommandLineRunner generateHash(PasswordEncoder passwordEncoder) {
 		return args -> {
-			System.out.println("HASH: " + passwordEncoder.encode("password123"));
+			System.out.println("HASH: " + passwordEncoder.encode("Admin@1234"));
 		};
 	}
 }
